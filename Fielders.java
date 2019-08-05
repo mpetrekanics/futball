@@ -224,7 +224,7 @@ public int[][] chooseFiveEmptiest(int[][] position) {
 	}
 	 
 	for (int i = 0; i < 5; i++) {
-		System.out.println("position " + "i" + " is: " + position[i][0] + ";" + position[i][1]);
+		System.out.println("position " + i + " is: " + position[i][0] + ";" + position[i][1]);
 	}
 	
 	// we need to modify this slightly as the two strikers are number 4 and number 2 and they should be at front. So in the result we should exchange 2 and 3

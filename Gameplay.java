@@ -29,6 +29,8 @@ private int wallThick;
 // units
 private Fielders left;
 private Fielders right;
+private Color leftColor;
+private Color rightColor;
 private Ball futball;
 private Point aPoint;
 private Point bPoint;
@@ -55,14 +57,18 @@ private int[][] leftGoTo;
 private int[][] rightGoTo;
 private boolean leftChangedTacticWithArrow;
 private boolean rightChangedTacticWithArrow;
+private int leftWait;
+private int rightWait;
+private int reactionTime = 7;
 // empty positions matrix:
 // ----------------------x-----y----radius
 // emptiest-------------- ----- ----
 // second emptiest------- ----- ----
-
-private int[][] emptiestFive;
+// ..
+private int[][] leftEmptiestFive;
+private int[][] rightEmptiestFive;
 private double circlePrecis = 3.0;
-private boolean debuggingOn = false;
+private int emptySpacesHowOffensive; // the part of the field near the opponent's goal where the team tries to find the empty spaces when this tactic is on
 
 
 //CONSTRUCTOR-------------------------------------------------------------------------------------------
@@ -96,6 +102,8 @@ left = new Fielders(5, true, fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeig
 left.setPosition(left.getDefensePosition());
 right = new Fielders(5, false, fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
 right.setPosition(right.getDefensePosition());
+leftColor = Color.orange;
+rightColor = Color.cyan;
 playersTurn = false;
 nearestTeamLeft = true;
 nearestPlayer = 0;
@@ -118,8 +126,14 @@ left.setTactic(0);
 right.setTactic(0);
 leftChangedTacticWithArrow = false;
 rightChangedTacticWithArrow = false;
-emptiestFive = new int[5][3];
-cleanEmptiestFive();
+leftWait = 0;
+rightWait = 0;
+emptySpacesHowOffensive = fieldWidth / 2;
+leftEmptiestFive = new int[5][3];
+rightEmptiestFive = new int[5][3];
+cleanEmptiestFiveForLeft(true);
+cleanEmptiestFiveForLeft(false);
+
 }
 
 //PAINTING --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -143,20 +157,26 @@ g.fillRect(fieldUppLeftX + fieldWidth,fieldUppLeftY + fieldHeight / 20 * 7,wallT
 // shot strength
 g.setColor(Color.white);
 g.fillRect(width / 2 - 60,10,futball.getShotStrength(),10);
-//temporary debugging emptiest circle, uncomment to see circles
-if (debuggingOn) {
-	g.setColor(Color.green);
+//to see where are the players going when it is tactic 'empty spaces'
+if (left.getTactic() == 4) {
+	g.setColor(leftColor);
 	for (int i = 0; i < 5; i++){
-		g.drawOval(emptiestFive[i][0] - emptiestFive[i][2], emptiestFive[i][1] - emptiestFive[i][2], emptiestFive[i][2]*2, emptiestFive[i][2]*2);
+		g.drawOval(leftEmptiestFive[i][0] - 3, leftEmptiestFive[i][1] - 3, 6, 6);
+	}
+}
+if (right.getTactic() == 4) {
+	g.setColor(rightColor);
+	for (int i = 0; i < 5; i++){
+		g.drawOval(rightEmptiestFive[i][0] - 3, rightEmptiestFive[i][1] - 3, 6, 6);
 	}
 }
 //players
-g.setColor(Color.orange);
+g.setColor(leftColor);
 for (int i = 0; i < 5; i++){
 	g.fillOval(left.getPosX(i) - left.getRadius(), left.getPosY(i) - left.getRadius(), left.getRadius()*2, left.getRadius()*2);
 }
 g.fillRect(fieldUppLeftX - wallThick/2,leftgk.getPosY() - leftgk.getBig()/2, wallThick/2, leftgk.getBig());
-g.setColor(Color.cyan);
+g.setColor(rightColor);
 for (int i = 0; i < 5; i++){
 	g.fillOval(right.getPosX(i) - right.getRadius(), right.getPosY(i) - right.getRadius(), right.getRadius()*2, right.getRadius()*2);
 }
@@ -228,7 +248,12 @@ switch (right.getTactic()) {
 		g.setFont(new Font("serif", Font.BOLD, 40));
 		g.drawString("HOLD THIS POSITION", 800, 100);	
 }
-
+// PAUSE
+if (!play && !goal) {
+	g.setColor(Color.white);
+	g.setFont(new Font("serif", Font.BOLD, 40));
+	g.drawString("PAUSED", width / 2 - 100, 500);
+}
 g.dispose();
 }
 
@@ -243,21 +268,17 @@ timer.start();
 
 if(play) {
 // these things happen every time, these are 'above' the phases
-if (debuggingOn) {
-	cleanEmptiestFive();
-	findEmptiestFive(20, circlePrecis);
-}	
-
 if (left.getTactic() == 3) leftGoTo = attacker(true).guardByNumberGetPosition(attacker(false).getPosition()); // so the player follow the other player, you don't have to press
 if (right.getTactic() == 3) rightGoTo = attacker(false).guardByNumberGetPosition(attacker(true).getPosition()); // ... the down button again and again 
 // GAME PHASES: ball moving - players are preparing (this is just a moment) - one player is going for the ball, others are following the current tactic - aiming with the ball
 // ... , others don't move - ball moving again
-// ball is moving
+// ball is moving + maybe an interception happens
 if (ballMoving && !playersTurn && !someoneHasTheBall) {
 	futball.bounce(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
 	futball.slow(); // decrease shot strength
 	futball.move();
 	intercept(interceptors);
+	directIntercept(interceptors);
 	teamScored(true);
 	teamScored(false);
 }
@@ -272,14 +293,26 @@ if (futball.isStopped() && !playersTurn && !someoneHasTheBall) {
 	//System.out.println("this is the players turn." + nearestTeamLeft + nearestPlayer);
 	// where to go for the ball
 	setDirectionToBall(nearestTeamLeft, nearestPlayer);
+	if (left.getTactic() == 3) {
+		leftWait = reactionTime;
+	} else {
+		leftWait = 0;
+	}
+	if (right.getTactic() == 3) {
+		rightWait = reactionTime;
+	} else {
+		rightWait = 0;
+	}
 }
 // the players moving, one for the ball, and all others somewhere else
 if (playersTurn && !someoneHasTheBall && !ballMoving) {
 	if (!playerCatchBall(nearestTeamLeft, nearestPlayer)) {
 		setDirectionToBall(nearestTeamLeft, nearestPlayer);
 		movePlayer(nearestTeamLeft, nearestPlayer);
-		if (left.getTactic() != 0) moveTeam(true); // move the whole team (except the one player who goes for the ball) unless the tactic is HOLD THIS POSITION
-		if (right.getTactic() != 0) moveTeam(false);
+		if (leftWait > 0) leftWait--;
+		if (rightWait > 0) rightWait--;
+		if (left.getTactic() != 0 && leftWait == 0) moveTeam(true); // move the whole team (except the one player who goes for the ball) unless the tactic is HOLD THIS POSITION
+		if (right.getTactic() != 0 && rightWait == 0) moveTeam(false);
 		leftgk.followBall(futball.getPosY()); // the goalkeeper moves inside the goal so he is closer to the ball. There are only 3 positions and the ball is, respectively
 		// ... the upper part of the field - in front of the goal - lower part of the field
 		rightgk.followBall(futball.getPosY());
@@ -326,11 +359,65 @@ System.out.println("ball's aim: " + futball.getAim());
 System.out.println("the attacker player's coordinates are: " + attacker(nearestTeamLeft).getPosX(nearestPlayer) + " " + attacker(nearestTeamLeft).getPosY(nearestPlayer));
 System.out.println("shotstrength is: " + futball.getShotStrength());
 //System.out.println("The sum of distances between 0;0 and every player on the field is: " + findDistanceFromEveryPlayer(0, 0));
-System.out.println("There is a wall or an other player in 50 radius of the ball " + isSomebodyOrWallInCircle(futball.getPosX(),futball.getPosY(),50));
+//System.out.println("There is a wall or an other player in 50 radius of the ball " + isSomebodyOrWallInCircle(futball.getPosX(),futball.getPosY(),50));
 //System.out.println("the emptiest space on the field is: " + findTheEmptiestSpace(20, 10.0)[0] + ";" + findTheEmptiestSpace(20, 10.0)[1]); 
 //cleanEmptiestFive();
 //findEmptiestFive(20, 10.0); // this interferes with the game 
-debuggingOn = !debuggingOn;
+
+}
+// change color : blue, cyan, darkGray, gray, lightGray, green, magenta, orange, pink, white, yellow
+if (e.getKeyCode() == KeyEvent.VK_F1) {
+	if (leftColor == Color.blue) {
+		leftColor = Color.cyan;
+	} else if (leftColor == Color.cyan) {
+		leftColor = Color.darkGray;
+	} else if (leftColor == Color.darkGray) {
+		leftColor = Color.gray;
+	} else if (leftColor == Color.gray) {
+		leftColor = Color.lightGray;
+	} else if (leftColor == Color.lightGray) {
+		leftColor = Color.green;
+	} else if (leftColor == Color.green) {
+		leftColor = Color.magenta;
+	} else if (leftColor == Color.magenta) {
+		leftColor = Color.orange;
+	} else if (leftColor == Color.orange) {
+		leftColor = Color.pink;
+	} else if (leftColor == Color.pink) {
+		leftColor = Color.white;
+	} else if (leftColor == Color.white) {
+		leftColor = Color.yellow;	
+	} else { 
+		leftColor = Color.blue; 
+	}
+}
+if (e.getKeyCode() == KeyEvent.VK_F2) {
+	if (rightColor == Color.blue) {
+		rightColor = Color.cyan;
+	} else if (rightColor == Color.cyan) {
+		rightColor = Color.darkGray;
+	} else if (rightColor == Color.darkGray) {
+		rightColor = Color.gray;
+	} else if (rightColor == Color.gray) {
+		rightColor = Color.lightGray;
+	} else if (rightColor == Color.lightGray) {
+		rightColor = Color.green;
+	} else if (rightColor == Color.green) {
+		rightColor = Color.magenta;
+	} else if (rightColor == Color.magenta) {
+		rightColor = Color.orange;
+	} else if (rightColor == Color.orange) {
+		rightColor = Color.pink;
+	} else if (rightColor == Color.pink) {
+		rightColor = Color.white;
+	} else if (rightColor == Color.white) {
+		rightColor = Color.yellow;	
+	} else { 
+		rightColor = Color.blue; 
+	}
+}
+if(e.getKeyCode() == KeyEvent.VK_P) {
+	play = !play;
 }
 if(e.getKeyCode() == KeyEvent.VK_A) {
 	if (someoneHasTheBall && nearestTeamLeft) {
@@ -354,9 +441,9 @@ if(e.getKeyCode() == KeyEvent.VK_W) {
 	if (someoneHasTheBall && nearestTeamLeft) {
 		futball.shotHarder();
 	} else {
-		cleanEmptiestFive();
-		findEmptiestFive(20, circlePrecis);
-		leftGoTo = attacker(true).chooseFiveEmptiest(convertEmptiestFive());
+		cleanEmptiestFiveForLeft(true);
+		findEmptiestFiveForLeft(20, circlePrecis, true);
+		leftGoTo = attacker(true).chooseFiveEmptiest(convertEmptiestFiveForLeft(true));
 		left.setTactic(4);
 		leftChangedTacticWithArrow = true;
 	}
@@ -397,9 +484,9 @@ if(e.getKeyCode() == KeyEvent.VK_0) {
 		leftGoTo = attacker(true).guardByNumberGetPosition(attacker(false).getPosition());
 		break;
 	case 4:
-		cleanEmptiestFive();
-		findEmptiestFive(20, circlePrecis);
-		leftGoTo = attacker(true).chooseFiveEmptiest(convertEmptiestFive());
+		cleanEmptiestFiveForLeft(true);
+		findEmptiestFiveForLeft(20, circlePrecis, true);
+		leftGoTo = attacker(true).chooseFiveEmptiest(convertEmptiestFiveForLeft(true));
 		break;
 	default: //case 0
 		}	
@@ -439,9 +526,9 @@ if(e.getKeyCode() == KeyEvent.VK_UP) {
 	if (someoneHasTheBall && !nearestTeamLeft) {
 		futball.shotHarder();
 	} else {
-		cleanEmptiestFive();
-		findEmptiestFive(20, circlePrecis);
-		rightGoTo = attacker(false).chooseFiveEmptiest(convertEmptiestFive());
+		cleanEmptiestFiveForLeft(false);
+		findEmptiestFiveForLeft(20, circlePrecis, false);
+		rightGoTo = attacker(false).chooseFiveEmptiest(convertEmptiestFiveForLeft(false));
 		right.setTactic(4);
 		rightChangedTacticWithArrow = true;
 	}
@@ -483,9 +570,9 @@ if(e.getKeyCode() == KeyEvent.VK_PERIOD) {
 		rightGoTo = attacker(false).guardByNumberGetPosition(attacker(true).getPosition());
 		break;
 	case 4:
-		cleanEmptiestFive();
-		findEmptiestFive(20, circlePrecis);
-		rightGoTo = attacker(false).chooseFiveEmptiest(convertEmptiestFive());
+		cleanEmptiestFiveForLeft(false);
+		findEmptiestFiveForLeft(20, circlePrecis, false);
+		rightGoTo = attacker(false).chooseFiveEmptiest(convertEmptiestFiveForLeft(false));
 		break;
 	default: //case 0
 		}
@@ -590,6 +677,18 @@ public void intercept(int[][] interceptors) {
 	}
 }
 
+public void directIntercept(int[][] interceptors) {
+	aPoint.setPoint(futball.getPosX(), futball.getPosY());
+	for (int i = 0; i < 5; i++) { 
+		bPoint.setPoint(interceptors[i][0], interceptors[i][1]);
+		if(aPoint.distance(bPoint) < left.getRadius()) { // expecting equal radiuses for both teams
+			futball.setShotStrength(0);
+			System.out.println("direct interception!");
+			break;
+		}
+	}
+}
+
 // GOAL --------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -651,21 +750,8 @@ public void moveTeam(boolean team) {
 	}
 }
 
-// maybe I should do the empty space tactic with dividing the field 
-public void findEmptySpaceUp(boolean team) {
-	// find the emptiest space in the oppontets side, in his third, the upper part
-}
 
-public void findEmptySpaceDown(boolean team) {
-	// find the emptiest space in the oppontets side, in his third, the lower part	
-}
-
-public void findEmptySpaceMiddle(boolean team) {
-		// find the emptiest space in the middle third
-		
-}
-
-//trying without divining the field
+//trying without dividing the field
 
 public double findDistanceFromEveryPlayer(int x, int y) {
 	double sum = 0.0;
@@ -716,7 +802,7 @@ public int[][] findFiveEmptiestSpace() {
 
 // so trying it with circles
 
-public boolean isSomebodyOrWallInCircle(int x, int y, double rad) {
+public boolean isSomebodyOrWallInCircleForLeft(int x, int y, double rad, boolean team) {
 	aPoint.setPoint(x, y);
 	//every (10) players
 	for (int i = 0; i < 5; i++) {
@@ -728,17 +814,17 @@ public boolean isSomebodyOrWallInCircle(int x, int y, double rad) {
 			if (aPoint.distance(bPoint) < rad) return true;
 	}
 	// walls
-	if (x - rad < fieldUppLeftX) return true;
+	if (x - rad < fieldUppLeftX + (team ? emptySpacesHowOffensive : 0)) return true;
 	if (y - rad < fieldUppLeftY) return true;
-	if (x + rad > fieldUppLeftX + fieldWidth) return true;
+	if (x + rad > fieldUppLeftX + fieldWidth - (!team ? emptySpacesHowOffensive : 0)) return true;
 	if (y + rad > fieldUppLeftY + fieldHeight) return true;
 	// and it also has to turn true when it intersects with an already found circle = empty space 
 	for (int i = 0; i < 5; i++) {
-		if (emptiestFive[i][2] == 0) {
+		if ((team ? leftEmptiestFive[i][2] : rightEmptiestFive[i][2]) == 0) {
 			break;
 		} else {
-			bPoint.setPoint(emptiestFive[i][0], emptiestFive[i][1]);
-			if (aPoint.distance(bPoint) < rad + emptiestFive[i][2]) return true; 
+			bPoint.setPoint(team ? leftEmptiestFive[i][0] : rightEmptiestFive[i][0], team ? leftEmptiestFive[i][1] : rightEmptiestFive[i][1]);
+			if (aPoint.distance(bPoint) < rad + (team ? leftEmptiestFive[i][2] : rightEmptiestFive[i][2])) return true; 
 		}
 	}
 	return false;
@@ -747,7 +833,7 @@ public boolean isSomebodyOrWallInCircle(int x, int y, double rad) {
 // it divides the field into squares. Then it calculates the maximum circle in every corner. The side of the square is netPrecis. 
 // you can increase the ..precis values if you have a computer with good processor
 
-public int[] findTheEmptiestSpace(int netPrecis, double circlePrecis) {
+public int[] findTheEmptiestSpaceForLeft(int netPrecis, double circlePrecis, boolean team) {
 	int[] result = new int[3];
 	double max = 0.0;
 	int i = 1;
@@ -757,7 +843,7 @@ public int[] findTheEmptiestSpace(int netPrecis, double circlePrecis) {
 	System.out.println("fieldWidth: " + fieldWidth + "\nfieldHeight: " + fieldHeight + "\nfieldUppLeftX: " + fieldUppLeftX + "\nfieldUppLeftY: " + fieldUppLeftY);
 	while (netPrecis * i < fieldWidth) {
 		while (netPrecis * j < fieldHeight) {
-			while (!isSomebodyOrWallInCircle(fieldUppLeftX + netPrecis * i, fieldUppLeftY + netPrecis * j, rad)) {
+			while (!isSomebodyOrWallInCircleForLeft(fieldUppLeftX + netPrecis * i, fieldUppLeftY + netPrecis * j, rad, team)) {
 				rad += circlePrecis; // drawing bigger and bigger circles until it finds something
 			}
 			temp = rad - circlePrecis;
@@ -778,18 +864,24 @@ public int[] findTheEmptiestSpace(int netPrecis, double circlePrecis) {
 }
 
 // possible feature: if the circle is too big (two players should go there) it should be divided to half
-public void findEmptiestFive(int netPrecis, double circlePrecis) {
-	emptiestFive[0] = findTheEmptiestSpace(netPrecis, circlePrecis);
-	emptiestFive[1] = findTheEmptiestSpace(netPrecis, circlePrecis);
-	emptiestFive[2] = findTheEmptiestSpace(netPrecis, circlePrecis);
-	emptiestFive[3] = findTheEmptiestSpace(netPrecis, circlePrecis);
-	emptiestFive[4] = findTheEmptiestSpace(netPrecis, circlePrecis);
+public void findEmptiestFiveForLeft(int netPrecis, double circlePrecis, boolean team) {
+	for (int i = 0; i < 5; i++) {
+		if (team) {
+			leftEmptiestFive[i] = findTheEmptiestSpaceForLeft(netPrecis, circlePrecis, team);
+		} else {
+			rightEmptiestFive[i] = findTheEmptiestSpaceForLeft(netPrecis, circlePrecis, team);
+		}
+	}
 }
 
-public void cleanEmptiestFive() {
+public void cleanEmptiestFiveForLeft(boolean team) {
 	for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 3; j++) {
-			emptiestFive[i][j] = 0;
+			if (team) {
+				leftEmptiestFive[i][j] = 0;
+			} else {
+				rightEmptiestFive[i][j] = 0;				
+			}
 		}
 	}
 }
@@ -800,20 +892,20 @@ public void cleanEmptiestFive() {
 public void emptiestFiveToTeam(boolean team) {
 	for (int i = 0; i < 5; i++) {
 		if (team) {
-			leftGoTo[i][0] = emptiestFive[i][0];
-			leftGoTo[i][1] = emptiestFive[i][1];
+			leftGoTo[i][0] = leftEmptiestFive[i][0];
+			leftGoTo[i][1] = leftEmptiestFive[i][1];
 		} else {
-			rightGoTo[i][0] = emptiestFive[i][0];
-			rightGoTo[i][1] = emptiestFive[i][1];
+			rightGoTo[i][0] = rightEmptiestFive[i][0];
+			rightGoTo[i][1] = rightEmptiestFive[i][1];
 		}
 	}	
 }
 
-public int[][] convertEmptiestFive() {
+public int[][] convertEmptiestFiveForLeft(boolean team) {
 	int[][] result = new int[5][2];
 	for (int i = 0; i < 5; i++) {
-		result[i][0] = emptiestFive[i][0];
-		result[i][1] = emptiestFive[i][1];
+		result[i][0] = team ? leftEmptiestFive[i][0] : rightEmptiestFive[i][0];
+		result[i][1] = team ? leftEmptiestFive[i][1] : rightEmptiestFive[i][1];
 	}
 	return result;
 }
@@ -838,7 +930,7 @@ public double calculateGoalLikelihood(boolean team) {
 	System.out.println("(double) (futball.getShotStrength()) / (double) (futball.getMaxShotStrength()) = factorShot : " + 
 	factorShot);
 	System.out.println("(double) (Math.abs(futball.getPosY() - *WHATEVERGOALKEEPER*.getPosY())) / (double) (fieldHeight / 20 * 3) = factorPlace: " + factorPlace);
-	System.out.println("Math.random() / 3.0 - 0.167 = factorRandom: " + factorRandom);
+	System.out.println("Math.random() / 2 - 0.25 = factorRandom: " + factorRandom);
 	System.out.println("factorShot * factorPlace + factorRandom : " 
 	+ (factorShot * factorPlace + factorRandom) + " This should be greater than " + goalTreshold + " to be a goal, otherwise the goalkeeper saves.");
 	return factorShot * factorPlace + factorRandom;

@@ -31,7 +31,7 @@ public Ball(int uppLeftX, int uppLeftY, int width, int height, boolean team) {
 	if (team) {
 		aim = 0.0;
 	} else {
-		aim = 3.1415;
+		aim = Math.PI;
 	}
 	posX = width / 2 + uppLeftX;
 	//posY = 200;

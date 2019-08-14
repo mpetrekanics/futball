@@ -23,15 +23,16 @@ public Ball(int uppLeftX, int uppLeftY, int width, int height, boolean team) {
 	//xFlipper = 1;
 	//yFlipper = 1;
 	rand = new Random();
-	shotStrength = 30;
-	//shotStrength = rand.nextInt(100);
+	//shotStrength = 30;
+	shotStrength = rand.nextInt(100);
 	speed = Math.sqrt(20);
 	radius = 10;
 	//aim = 0;
 	if (team) {
-		aim = 0.0;
+		aim = 0.5 - Math.random();
 	} else {
-		aim = Math.PI;
+		aim = Math.PI - 0.5 + Math.random();
+		if (aim > Math.PI) aim -= 2 * Math.PI;
 	}
 	posX = width / 2 + uppLeftX;
 	//posY = 200;

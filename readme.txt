@@ -1,34 +1,11 @@
-readme.txt for futball game
-
-amikor a labdát valaki elrúgja:
-- a labda elmegy addig, ameddig
-- fokozatosan lassul, végül megáll
-
-kiszámoljuk, hogy ki van a legközelebb mezőnyjátékosok közül
-aki a legközelebb van, az elindul a labda felé
-
-a játék közben mindkét játékos  beállíthat mód-okat, ez határozza meg, hogy mit csinál a többi játékos, amíg az egyvalaki elmegy a labdáért
-
-mód0: maradni ott ahol van
-
-mód1:védekezés
-mindenki visszafut egy előre meghatározott védekező pozícióba
-
-mód2: támadás
-feláll a csapat egy előre meghatározott támadó pozícióba
-
-mód3: embert keresni
-minél közelebb menni a legközelebbi ellenfélhez de egyben elosztani is őket: azok felé az ellenfelek felé futni, hogy a futások összege a legkevesebb legyen
-az ellenfelet úgy fogjuk, hogy a saját kapunkat fedezzük
-ha már kiválasztottad hogy melyik ellenfelet fogod, akkor maradsz rajta. 
-
-mód4: üres területre mozogni
-minél messzebb kerülni minden egyéb játékostól
-persze nem a sarokba befutni
+readme.txt for the futball game
 
 --------
 ENGLISH-
 --------
+
+This is a futball game for 2 players. When you shot the ball and it stops the nearest player will have it. All your other players (for both team) can follow different 
+tactics.  
 
 *** CONTROLLS ***
 LEFT PLAYER CONTROLLS:
@@ -50,7 +27,9 @@ CTRL        : when you have the ball - shot
 . (PERIOD)  : change between tactics
 
 I : log some information
-
+P : pause the game
+F1 : change the color of the left player
+F2 : change the color of the right player
 
 // ideas, new features
 - randomize the attacking and the defense : not exact positions but squares where to go randomly
@@ -64,13 +43,6 @@ considering just part of the field, near the opponent's goal
 - creating options menu: 
 	changing the keyboard keys associated with actions
 	changing the colour of your team
-	
-
-// bugs
-- during the game, when you press the arrow key to move the ball around you it stops moving when the opponent change tactic
-- when a player reaches his designated position he keeps moving
-- hard to reproduce: sometimes, when choosing empty spaces the players running off the field 
-
 I should rewrite interception like this:
 2 kinds of interception:
 - the ball directly hits a player
@@ -80,9 +52,17 @@ I should rewrite interception like this:
 - the player who shot the ball should be a little slower
 - simplyfied goal calculation logic: factor + factor + factor
 - maybe slow down the player when he changes direction (90 degrees or more)
-- when a team scores a goal the opposite team should have the ball afterwards
 - shotstrength label near the rectangle
-- press enter to restart label after a goal 
+- press enter to restart label after a goal 	
+
+// bugs
+- during the game, when you press the arrow key to move the ball around you it stops moving when the opponent change tactic
+- when a player reaches his designated position he keeps moving
+- hard to reproduce: sometimes, when choosing empty spaces the players running off the field 
+- when a team scores a goal the opposite team should have the ball afterwards
+
+
+
 
 
 

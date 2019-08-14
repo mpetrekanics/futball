@@ -51,7 +51,7 @@ private int[][] interceptors = new int[5][2];
 private int leftScore;
 private int rightScore;
 private boolean goal;
-private double goalTreshold = 0.3;
+private double goalTreshold = 1.0;
 // tactics
 private int[][] leftGoTo;
 private int[][] rightGoTo;

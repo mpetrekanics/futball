@@ -50,7 +50,6 @@ I should rewrite interception like this:
 - when the ball is intercepted the opponent will go for the ball (his nearest player)
 
 - the player who shot the ball should be a little slower
-- simplyfied goal calculation logic: factor + factor + factor
 - maybe slow down the player when he changes direction (90 degrees or more)
 - shotstrength label near the rectangle
 - press enter to restart label after a goal 	

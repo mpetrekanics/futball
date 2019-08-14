@@ -53,8 +53,7 @@ I should rewrite interception like this:
 
 - the player who shot the ball should be a little slower
 - maybe slow down the player when he changes direction (90 degrees or more)
-- shotstrength label near the rectangle
-- press enter to restart label after a goal 	
+
 
 // bugs
 - during the game, when you press the arrow key to move the ball around you it stops moving when the opponent change tactic

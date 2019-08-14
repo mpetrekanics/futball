@@ -158,7 +158,20 @@ g.fillRect(fieldUppLeftX - wallThick,fieldUppLeftY + fieldHeight / 20 * 7,wallTh
 g.fillRect(fieldUppLeftX + fieldWidth,fieldUppLeftY + fieldHeight / 20 * 7,wallThick,fieldHeight / 20 * 6);
 // shot strength
 g.setColor(Color.white);
+g.setFont(new Font("serif", Font.BOLD, 20));
+g.drawString("Shot Strength:", width / 2 - 200, 20);
 g.fillRect(width / 2 - 60,10,futball.getShotStrength(),10);
+//scores
+g.setColor(Color.white);
+g.setFont(new Font("serif", Font.BOLD, 60));
+g.drawString(""+leftScore + " - " + rightScore, width / 2 - 110, 80);
+if (goal) {
+	g.setColor(Color.white);
+	g.setFont(new Font("serif", Font.BOLD, 200));
+	g.drawString("GOAL", width / 2 - 260, 500);
+	g.setFont(new Font("serif", Font.BOLD, 20));
+	g.drawString("Press Enter To Continue", width / 2 - 260, 730);
+}
 //to see where are the players going when it is tactic 'empty spaces'
 if (left.getTactic() == 4) {
 	g.setColor(leftColor);
@@ -188,15 +201,6 @@ g.setColor(Color.red);
 g.fillOval(futball.getPosX() - futball.getRadius(), futball.getPosY() - futball.getRadius(), futball.getRadius()*2, futball.getRadius()*2);
 
 
-//scores
-g.setColor(Color.white);
-g.setFont(new Font("serif", Font.BOLD, 25));
-g.drawString(""+leftScore + " - " + rightScore, width / 2 - 40, 60);
-if (goal) {
-	g.setColor(Color.white);
-	g.setFont(new Font("serif", Font.BOLD, 40));
-	g.drawString("GOAL", width / 2 - 60, 100);
-}
 //tactics - it should show the current tactics above the field that a player has chosen
 switch (left.getTactic()) {
 	case 1:

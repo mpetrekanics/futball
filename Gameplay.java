@@ -51,6 +51,7 @@ private int[][] interceptors = new int[5][2];
 private int leftScore;
 private int rightScore;
 private boolean goal;
+private boolean leftJustScored;
 private double goalTreshold = 1.0;
 // tactics
 private int[][] leftGoTo;
@@ -111,8 +112,9 @@ someoneHasTheBall = false;
 ballMoving = true;
 leftgk = new Goalkeeper(true, fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
 rightgk = new Goalkeeper(false, fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
+leftJustScored = rand.nextBoolean(); // coin flip before the match
 // ball
-futball = new Ball(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
+futball = new Ball(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight, leftJustScored);
 // interception
 interceptors = leftTeamPosition(true);
 // score
@@ -500,7 +502,7 @@ if(e.getKeyCode() == KeyEvent.VK_ENTER) {
 		left.setTactic(0);
 		right.setTactic(0);
 		play = true;
-		futball = new Ball(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
+		futball = new Ball(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight, leftJustScored);
 	}
 }
 if(e.getKeyCode() == KeyEvent.VK_LEFT) {
@@ -709,6 +711,7 @@ public void teamScored(boolean team) {
 			futball.setPosX(futball.getPosX() - 4);
 		} else {
 			leftScore++;
+			leftJustScored = true;
 			play = false;
 			goal = true;
 		}
@@ -726,7 +729,8 @@ public void teamScored(boolean team) {
 			futball.setPosX(futball.getPosX() + 4);
 			futball.setAim(0.0);
 		} else { // it's a goal
-			rightScore++; 
+			rightScore++;
+			leftJustScored = false;
 			play = false;
 			goal = true;
 		}

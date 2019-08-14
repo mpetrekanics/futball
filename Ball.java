@@ -19,7 +19,7 @@ private final int maxShotStrength = 120;
 private final int minShotStrength = 30;
 private final int shotStrengthPrecis = 8;
 
-public Ball(int uppLeftX, int uppLeftY, int width, int height) {
+public Ball(int uppLeftX, int uppLeftY, int width, int height, boolean team) {
 	//xFlipper = 1;
 	//yFlipper = 1;
 	rand = new Random();
@@ -28,7 +28,11 @@ public Ball(int uppLeftX, int uppLeftY, int width, int height) {
 	speed = Math.sqrt(20);
 	radius = 10;
 	//aim = 0;
-	aim = Math.random() * 2 * Math.PI - Math.PI;
+	if (team) {
+		aim = 0.0;
+	} else {
+		aim = 3.1415;
+	}
 	posX = width / 2 + uppLeftX;
 	//posY = 200;
 	posY = height / 2 + uppLeftY;

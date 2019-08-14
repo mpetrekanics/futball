@@ -60,7 +60,7 @@ I should rewrite interception like this:
 - during the game, when you press the arrow key to move the ball around you it stops moving when the opponent change tactic
 - when a player reaches his designated position he keeps moving
 - hard to reproduce: sometimes, when choosing empty spaces the players running off the field 
-- when a team scores a goal the opposite team should have the ball afterwards
+
 
 
 

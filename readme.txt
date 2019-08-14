@@ -42,7 +42,9 @@ considering just part of the field, near the opponent's goal
 - interception: not square but circle. The closest it's is coming to the player + the weaker the shot is -> the higher the chance of interception
 - creating options menu: 
 	changing the keyboard keys associated with actions
-	changing the colour of your team
+	changing the values like maxShotStrength, etc..
+
+
 I should rewrite interception like this:
 2 kinds of interception:
 - the ball directly hits a player

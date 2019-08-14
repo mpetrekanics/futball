@@ -920,7 +920,7 @@ public int[][] convertEmptiestFiveForLeft(boolean team) {
 public double calculateGoalLikelihood(boolean team) {
 	double factorShot = (double) (futball.getShotStrength()) / (double) (futball.getMaxShotStrength()); //relatively how strong the shot is
 	double factorPlace = (double) (Math.abs(futball.getPosY() - (team ? leftgk.getPosY() : rightgk.getPosY()))) / (double) (fieldHeight / 20 * 3); // you should aim the corner of the goal and far 
-	double factorRandom = Math.random() / 2 - 0.25;
+	double factorRandom = Math.random() / 1 - 0.5;
 	// ... from the goalkeeper
 	System.out.println("futball.getMaxShotStrength(): " + futball.getMaxShotStrength());
 	System.out.println("futball.getShotStrength(): " + futball.getShotStrength());
@@ -930,7 +930,7 @@ public double calculateGoalLikelihood(boolean team) {
 	System.out.println("(double) (futball.getShotStrength()) / (double) (futball.getMaxShotStrength()) = factorShot : " + 
 	factorShot);
 	System.out.println("(double) (Math.abs(futball.getPosY() - *WHATEVERGOALKEEPER*.getPosY())) / (double) (fieldHeight / 20 * 3) = factorPlace: " + factorPlace);
-	System.out.println("Math.random() / 2 - 0.25 = factorRandom: " + factorRandom);
+	System.out.println("Math.random() / 1 - 0.5 = factorRandom: " + factorRandom);
 	System.out.println("factorShot + factorPlace + factorRandom : " 
 	+ (factorShot + factorPlace + factorRandom) + " This should be greater than " + goalTreshold + " to be a goal, otherwise the goalkeeper saves.");
 	return factorShot + factorPlace + factorRandom;

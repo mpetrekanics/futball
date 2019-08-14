@@ -931,9 +931,9 @@ public double calculateGoalLikelihood(boolean team) {
 	factorShot);
 	System.out.println("(double) (Math.abs(futball.getPosY() - *WHATEVERGOALKEEPER*.getPosY())) / (double) (fieldHeight / 20 * 3) = factorPlace: " + factorPlace);
 	System.out.println("Math.random() / 2 - 0.25 = factorRandom: " + factorRandom);
-	System.out.println("factorShot * factorPlace + factorRandom : " 
-	+ (factorShot * factorPlace + factorRandom) + " This should be greater than " + goalTreshold + " to be a goal, otherwise the goalkeeper saves.");
-	return factorShot * factorPlace + factorRandom;
+	System.out.println("factorShot + factorPlace + factorRandom : " 
+	+ (factorShot + factorPlace + factorRandom) + " This should be greater than " + goalTreshold + " to be a goal, otherwise the goalkeeper saves.");
+	return factorShot + factorPlace + factorRandom;
 }
 
 }

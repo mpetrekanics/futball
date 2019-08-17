@@ -61,7 +61,7 @@ private boolean rightChangedTacticWithArrow;
 private int leftWait;
 private int rightWait;
 private int reactionTime = 7;
-private int ballControllTime = 20; //this applies only if a fielder passing to himself
+private int ballControlTime = 20; //this applies only if a fielder passing to himself
 private int nearestPlayerWait = 0;
 private boolean oldNearestTeamLeft;
 private int oldNearestPlayer; // if this is the same as the new then it is a pass for himself
@@ -299,12 +299,12 @@ if (futball.isStopped() && !playersTurn && !someoneHasTheBall) {
 	System.out.println("The ball has stopped");
 	ballMoving = false;
 	futball.setShotStrength(30);
-	oldNearestTeamLeft = nearestTeamLeft;
+	oldNearestTeamLeft = nearestTeamLeft; 
 	oldNearestPlayer = nearestPlayer;
 	nearestTeamLeft = nearestTeamLeft();
 	nearestPlayer = nearestPlayer(nearestTeamLeft);
-	if (oldNearestTeamLeft == nearestTeamLeft && oldNearestPlayer == nearestPlayer) {
-		nearestPlayerWait = ballControllTime;
+	if (oldNearestTeamLeft == nearestTeamLeft && oldNearestPlayer == nearestPlayer) { // if the nearest player is the same as before then it cost some time for him to control
+		nearestPlayerWait = ballControlTime; // .. the ball
 	} else {
 		nearestPlayerWait = 0;
 	}
@@ -417,7 +417,7 @@ if (e.getKeyCode() == KeyEvent.VK_F2) {
 	} else if (rightColor == Color.darkGray) {
 		rightColor = Color.gray;
 	} else if (rightColor == Color.gray) {
-		rightColor = Color.lightGray;
+		rightColor = Color.lightGray;	
 	} else if (rightColor == Color.lightGray) {
 		rightColor = Color.green;
 	} else if (rightColor == Color.green) {

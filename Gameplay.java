@@ -61,6 +61,10 @@ private boolean rightChangedTacticWithArrow;
 private int leftWait;
 private int rightWait;
 private int reactionTime = 7;
+private int ballControllTime = 20; //this applies only if a fielder passing to himself
+private int nearestPlayerWait = 0;
+private boolean oldNearestTeamLeft;
+private int oldNearestPlayer; // if this is the same as the new then it is a pass for himself
 // empty positions matrix:
 // ----------------------x-----y----radius
 // emptiest-------------- ----- ----
@@ -108,6 +112,8 @@ rightColor = Color.cyan;
 playersTurn = false;
 nearestTeamLeft = true;
 nearestPlayer = 0;
+oldNearestTeamLeft = true;
+oldNearestPlayer = 0;
 someoneHasTheBall = false;
 ballMoving = true;
 leftgk = new Goalkeeper(true, fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
@@ -293,8 +299,15 @@ if (futball.isStopped() && !playersTurn && !someoneHasTheBall) {
 	System.out.println("The ball has stopped");
 	ballMoving = false;
 	futball.setShotStrength(30);
+	oldNearestTeamLeft = nearestTeamLeft;
+	oldNearestPlayer = nearestPlayer;
 	nearestTeamLeft = nearestTeamLeft();
 	nearestPlayer = nearestPlayer(nearestTeamLeft);
+	if (oldNearestTeamLeft == nearestTeamLeft && oldNearestPlayer == nearestPlayer) {
+		nearestPlayerWait = ballControllTime;
+	} else {
+		nearestPlayerWait = 0;
+	}
 	playersTurn = true;
 	//System.out.println("this is the players turn." + nearestTeamLeft + nearestPlayer);
 	// where to go for the ball
@@ -315,21 +328,20 @@ if (playersTurn && !someoneHasTheBall && !ballMoving) {
 	if (!playerCatchBall(nearestTeamLeft, nearestPlayer)) {
 		setDirectionToBall(nearestTeamLeft, nearestPlayer);
 		movePlayer(nearestTeamLeft, nearestPlayer);
-		if (leftWait > 0) leftWait--;
-		if (rightWait > 0) rightWait--;
-		if (left.getTactic() != 0 && leftWait == 0) moveTeam(true); // move the whole team (except the one player who goes for the ball) unless the tactic is HOLD THIS POSITION
-		if (right.getTactic() != 0 && rightWait == 0) moveTeam(false);
-		leftgk.followBall(futball.getPosY()); // the goalkeeper moves inside the goal so he is closer to the ball. There are only 3 positions and the ball is, respectively
-		// ... the upper part of the field - in front of the goal - lower part of the field
-		rightgk.followBall(futball.getPosY());
+		everybodyMovesExceptNearest();
 	} else {
-		playersTurn = false;
-		someoneHasTheBall = true;
-		//if (nearestTeamLeft) futball.catchedBy(true, ballPlayerD);
-		//if (!nearestTeamLeft) futball.catchedBy(false, ballPlayerD);
-		if (nearestTeamLeft) futball.setAim(0); //by default, a player who catches the ball has the ball turned toward the opponent's goal
-		if (!nearestTeamLeft) futball.setAim(Math.PI); 
-		putBallNearKicker();
+		if (nearestPlayerWait > 0) {
+			nearestPlayerWait--;
+			everybodyMovesExceptNearest();
+		} else {
+			playersTurn = false;
+			someoneHasTheBall = true;
+			//if (nearestTeamLeft) futball.catchedBy(true, ballPlayerD);
+			//if (!nearestTeamLeft) futball.catchedBy(false, ballPlayerD);
+			if (nearestTeamLeft) futball.setAim(0); //by default, a player who catches the ball has the ball turned toward the opponent's goal
+			if (!nearestTeamLeft) futball.setAim(Math.PI); 
+			putBallNearKicker();
+		}
 	}
 }
 // aiming with the ball
@@ -585,7 +597,25 @@ if(e.getKeyCode() == KeyEvent.VK_PERIOD) {
 }
 }
 
+
+
+
 public void keyReleased(KeyEvent e) {}
+
+// GENERAL MOVING --------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+
+public void everybodyMovesExceptNearest() {
+	if (leftWait > 0) leftWait--;
+	if (rightWait > 0) rightWait--;
+	if (left.getTactic() != 0 && leftWait == 0) moveTeam(true); // move the whole team (except the one player who goes for the ball) unless the tactic is HOLD THIS POSITION
+	if (right.getTactic() != 0 && rightWait == 0) moveTeam(false);
+	leftgk.followBall(futball.getPosY()); // the goalkeeper moves inside the goal so he is closer to the ball. There are only 3 positions and the ball is, respectively
+	// ... the upper part of the field - in front of the goal - lower part of the field
+	rightgk.followBall(futball.getPosY());
+}
 
 // WHO WILL CATCH THE BALL --------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------

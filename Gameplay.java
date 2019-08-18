@@ -74,7 +74,8 @@ private int[][] leftEmptiestFive;
 private int[][] rightEmptiestFive;
 private double circlePrecis = 3.0;
 private int emptySpacesHowOffensive; // the part of the field near the opponent's goal where the team tries to find the empty spaces when this tactic is on
-
+//statistics
+private Statistics statistics;
 
 //CONSTRUCTOR-------------------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -141,7 +142,7 @@ leftEmptiestFive = new int[5][3];
 rightEmptiestFive = new int[5][3];
 cleanEmptiestFiveForLeft(true);
 cleanEmptiestFiveForLeft(false);
-
+statistics = new Statistics();
 }
 
 //PAINTING --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -162,11 +163,14 @@ g.fillRect(fieldUppLeftX,fieldUppLeftY,fieldWidth,fieldHeight);
 g.setColor(Color.red);
 g.fillRect(fieldUppLeftX - wallThick,fieldUppLeftY + fieldHeight / 20 * 7,wallThick,fieldHeight / 20 * 6);
 g.fillRect(fieldUppLeftX + fieldWidth,fieldUppLeftY + fieldHeight / 20 * 7,wallThick,fieldHeight / 20 * 6);
-// shot strength
+// shot strength, info, pause
 g.setColor(Color.white);
 g.setFont(new Font("serif", Font.BOLD, 20));
 g.drawString("Shot Strength:", width / 2 - 200, 20);
+g.drawString("I : Log Info", width - 200, 20);
+g.drawString("P : Pause", width - 200, 40);
 g.fillRect(width / 2 - 60,10,futball.getShotStrength(),10);
+g.drawRect(width / 2 - 60,10,futball.getMaxShotStrength(),10);
 //scores
 g.setColor(Color.white);
 g.setFont(new Font("serif", Font.BOLD, 60));
@@ -286,6 +290,8 @@ if (right.getTactic() == 3) rightGoTo = attacker(false).guardByNumberGetPosition
 // ... , others don't move - ball moving again
 // ball is moving + maybe an interception happens
 if (ballMoving && !playersTurn && !someoneHasTheBall) {
+	if (nearestTeamLeft) statistics.addLeftPoss();
+	if (!nearestTeamLeft) statistics.addRightPoss();
 	futball.bounce(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
 	futball.slow(); // decrease shot strength
 	futball.move();
@@ -303,6 +309,8 @@ if (futball.isStopped() && !playersTurn && !someoneHasTheBall) {
 	oldNearestPlayer = nearestPlayer;
 	nearestTeamLeft = nearestTeamLeft();
 	nearestPlayer = nearestPlayer(nearestTeamLeft);
+	if (nearestTeamLeft && nearestTeamLeft == oldNearestTeamLeft && nearestPlayer != oldNearestPlayer) statistics.addLeftPasses();
+	if (!nearestTeamLeft && nearestTeamLeft == oldNearestTeamLeft && nearestPlayer != oldNearestPlayer) statistics.addRightPasses();
 	if (oldNearestTeamLeft == nearestTeamLeft && oldNearestPlayer == nearestPlayer) { // if the nearest player is the same as before then it cost some time for him to control
 		nearestPlayerWait = ballControlTime; // .. the ball
 	} else {
@@ -325,6 +333,8 @@ if (futball.isStopped() && !playersTurn && !someoneHasTheBall) {
 }
 // the players moving, one for the ball, and all others somewhere else
 if (playersTurn && !someoneHasTheBall && !ballMoving) {
+	if (nearestTeamLeft) statistics.addLeftPoss();
+	if (!nearestTeamLeft) statistics.addRightPoss();
 	if (!playerCatchBall(nearestTeamLeft, nearestPlayer)) {
 		setDirectionToBall(nearestTeamLeft, nearestPlayer);
 		movePlayer(nearestTeamLeft, nearestPlayer);
@@ -367,7 +377,7 @@ if(e.getKeyCode() == KeyEvent.VK_I) {
 	System.out.println("right pos " + j + " is: (" + right.getPosX(j) + " ;" + right.getPosY(j) + ")");
 	
 }*/
-System.out.println("*******************************************************info***************************************** ");
+/*System.out.println("*******************************************************info***************************************** ");
 System.out.println("\nThe nearest team is: " + nearestTeamLeft() + "\nThe nearest LEFT player is: " + nearestPlayer(true) + "\nThe nearest RIGHT player is: " + nearestPlayer(false));
 distances();
 System.out.println("playersTurn " + playersTurn);
@@ -375,13 +385,13 @@ System.out.println("someoneHasTheBall " + someoneHasTheBall);
 System.out.println("ballMoving " + ballMoving);
 System.out.println("ball's aim: " + futball.getAim());
 System.out.println("the attacker player's coordinates are: " + attacker(nearestTeamLeft).getPosX(nearestPlayer) + " " + attacker(nearestTeamLeft).getPosY(nearestPlayer));
-System.out.println("shotstrength is: " + futball.getShotStrength());
+System.out.println("shotstrength is: " + futball.getShotStrength());*/
 //System.out.println("The sum of distances between 0;0 and every player on the field is: " + findDistanceFromEveryPlayer(0, 0));
 //System.out.println("There is a wall or an other player in 50 radius of the ball " + isSomebodyOrWallInCircle(futball.getPosX(),futball.getPosY(),50));
 //System.out.println("the emptiest space on the field is: " + findTheEmptiestSpace(20, 10.0)[0] + ";" + findTheEmptiestSpace(20, 10.0)[1]); 
 //cleanEmptiestFive();
 //findEmptiestFive(20, 10.0); // this interferes with the game 
-
+statistics.display();
 }
 // change color : blue, cyan, darkGray, gray, lightGray, green, magenta, orange, pink, white, yellow
 if (e.getKeyCode() == KeyEvent.VK_F1) {
@@ -708,6 +718,8 @@ public void intercept(int[][] interceptors) {
 		if(Math.abs(futball.getPosX() - interceptors[i][0]) < 40 && Math.abs(futball.getPosY() - interceptors[i][1]) < 40 && futball.getShotStrength() < 90) {
 			futball.setShotStrength(0);
 			System.out.println("interception!");
+			if (nearestTeamLeft) statistics.addRightInterceptions(); // this will be not precise because of the mini interceptions
+			if (!nearestTeamLeft) statistics.addLeftInterceptions();
 			break;
 		}
 	}
@@ -719,6 +731,8 @@ public void directIntercept(int[][] interceptors) {
 		bPoint.setPoint(interceptors[i][0], interceptors[i][1]);
 		if(aPoint.distance(bPoint) < left.getRadius()) { // expecting equal radiuses for both teams
 			futball.setShotStrength(0);
+			if (nearestTeamLeft) statistics.addRightInterceptions();
+			if (!nearestTeamLeft) statistics.addLeftInterceptions();
 			System.out.println("direct interception!");
 			break;
 		}
@@ -736,15 +750,18 @@ public void teamScored(boolean team) {
 	team) {
 		double goalLikelihood = calculateGoalLikelihood(false);		
 		if (futball.getPosY() > rightgk.getPosY() - rightgk.getBig() && futball.getPosY() < rightgk.getPosY() + rightgk.getBig() ) {
+			statistics.addRightSaves();			
 			//futball.setAim(Math.signum(futball.getAim()) * (Math.PI - Math.abs(futball.getAim())));
 			futball.setAim(Math.PI);
 			futball.setPosX(futball.getPosX() - 4);
 		} else if (goalLikelihood < goalTreshold){
+			statistics.addRightSaves();			
 			rightgk.setPosY(futball.getPosY());
 			futball.setAim(Math.PI);
 			futball.setPosX(futball.getPosX() - 4);
 		} else {
 			leftScore++;
+			statistics.addLeftScore();
 			leftJustScored = true;
 			play = false;
 			goal = true;
@@ -755,15 +772,18 @@ public void teamScored(boolean team) {
 	!team) {
 		double goalLikelihood = calculateGoalLikelihood(true);			
 		if (futball.getPosY() > leftgk.getPosY() - leftgk.getBig() && futball.getPosY() < leftgk.getPosY() + leftgk.getBig()) {
+			statistics.addLeftSaves();
 			//futball.setAim(Math.signum(futball.getAim()) * (Math.PI - Math.abs(futball.getAim()))); // goal denied by the goalkeeper when it physically hits him
 			futball.setPosX(futball.getPosX() + 4); 
 			futball.setAim(0.0); // he saves it and it bounce in front of him
 		} else if (goalLikelihood < goalTreshold){ // goalkeeper saves it with his skills and with luck
+			statistics.addLeftSaves();			
 			leftgk.setPosY(futball.getPosY());
 			futball.setPosX(futball.getPosX() + 4);
 			futball.setAim(0.0);
 		} else { // it's a goal
 			rightScore++;
+			statistics.addRightScore();
 			leftJustScored = false;
 			play = false;
 			goal = true;

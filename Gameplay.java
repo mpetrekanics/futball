@@ -52,7 +52,7 @@ private int leftScore;
 private int rightScore;
 private boolean goal;
 private boolean leftJustScored;
-private double goalTreshold = 1.0;
+private double goalTreshold = 1.4;
 // tactics
 private int[][] leftGoTo;
 private int[][] rightGoTo;
@@ -167,7 +167,7 @@ g.fillRect(fieldUppLeftX + fieldWidth,fieldUppLeftY + fieldHeight / 20 * 7,wallT
 g.setColor(Color.white);
 g.setFont(new Font("serif", Font.BOLD, 20));
 g.drawString("Shot Strength:", width / 2 - 200, 20);
-g.drawString("I : Log Info", width - 200, 20);
+g.drawString("I : Log Stats", width - 200, 20);
 g.drawString("P : Pause", width - 200, 40);
 g.fillRect(width / 2 - 60,10,futball.getShotStrength(),10);
 g.drawRect(width / 2 - 60,10,futball.getMaxShotStrength(),10);
@@ -304,7 +304,7 @@ if (ballMoving && !playersTurn && !someoneHasTheBall) {
 if (futball.isStopped() && !playersTurn && !someoneHasTheBall) {
 	System.out.println("The ball has stopped");
 	ballMoving = false;
-	futball.setShotStrength(30);
+	futball.setShotStrength(futball.getMinShotStrength());
 	oldNearestTeamLeft = nearestTeamLeft; 
 	oldNearestPlayer = nearestPlayer;
 	nearestTeamLeft = nearestTeamLeft();

@@ -80,6 +80,10 @@ public int getMaxShotStrength() {
 	return maxShotStrength;
 }
 
+public int getMinShotStrength() {
+	return minShotStrength;
+}
+
 public void shotHarder() {
 	shotStrength = shotStrength + shotStrengthPrecis;
 	if (shotStrength > maxShotStrength) shotStrength = maxShotStrength;

@@ -46,6 +46,9 @@ I should rewrite interception like this:
 - when the ball is intercepted the opponent will go for the ball (his nearest player)
 The closest it's is coming to the player + the weaker the shot is -> the higher the chance of interception
 
+- in the ball moving game phase there should be a little time when no interception can happen, so in the first few moments the ball 
+can go uninterruptedly
+
 - maybe slow down the player when he changes direction (90 degrees or more)
 
 
@@ -53,7 +56,7 @@ The closest it's is coming to the player + the weaker the shot is -> the higher 
 - during the game, when you press the arrow key to move the ball around you it stops moving when the opponent change tactic
 - when a player reaches his designated position he keeps moving
 - hard to reproduce: sometimes, when choosing empty spaces the players running off the field 
-
+- man-to-man guard tactic for both teams can cause players running off the field
 
 
 

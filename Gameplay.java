@@ -304,6 +304,7 @@ if (ballMoving && !playersTurn && !someoneHasTheBall) {
 		noInterceptionTime--;
 	}
 	directIntercept(interceptors);
+	//everybodyMovesExceptNearest(); this line turns the game upside down: it is quicker but the interception doesn't work as expected
 	teamScored(true);
 	teamScored(false);
 }

@@ -47,6 +47,8 @@ private Goalkeeper leftgk;
 private Goalkeeper rightgk;
 // interception
 private int[][] interceptors = new int[5][2];
+private int noInterceptionTime;
+private int defaultNoInterceptionTime = 15;
 // scores
 private int leftScore;
 private int rightScore;
@@ -124,6 +126,7 @@ leftJustScored = rand.nextBoolean(); // coin flip before the match
 futball = new Ball(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight, leftJustScored);
 // interception
 interceptors = leftTeamPosition(true);
+noInterceptionTime = defaultNoInterceptionTime;
 // score
 leftScore = 0;
 rightScore = 0;
@@ -295,7 +298,11 @@ if (ballMoving && !playersTurn && !someoneHasTheBall) {
 	futball.bounce(fieldUppLeftX, fieldUppLeftY, fieldWidth, fieldHeight);
 	futball.slow(); // decrease shot strength
 	futball.move();
-	intercept(interceptors);
+	if (noInterceptionTime == 0) {
+		intercept(interceptors);
+	} else {
+		noInterceptionTime--;
+	}
 	directIntercept(interceptors);
 	teamScored(true);
 	teamScored(false);
@@ -357,6 +364,7 @@ if (playersTurn && !someoneHasTheBall && !ballMoving) {
 // aiming with the ball
 if (!playersTurn && someoneHasTheBall && !ballMoving) {
 	putBallNearKicker();
+	noInterceptionTime = defaultNoInterceptionTime;
 	interceptors = leftTeamPosition(!nearestTeamLeft); // only the defender team can intercept the ball, not the kicker team
 }
 }

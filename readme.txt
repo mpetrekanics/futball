@@ -54,7 +54,7 @@ The closest it's is coming to the player + the weaker the shot is -> the higher 
 - when a player reaches his designated position he keeps moving
 - hard to reproduce: sometimes, when choosing empty spaces the players running off the field 
 - man-to-man guard tactic for both teams can cause players running off the field
-
+- man-to-man guard tactic: a player can change it at the last second (before the ball stops) so he doesn't get a reaction time penalty 
 
 
 
